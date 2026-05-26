@@ -772,7 +772,7 @@
         <div class="custom-row" id="vial-custom" style="display:none">
           <div class="input-wrap">
             <input type="number" id="vial-input" step="0.1" min="0" inputmode="decimal" data-i18n-placeholder="enterMg" placeholder="Enter mg">
-            <span class="unit-suffix">mg</span>
+            <span class="unit-suffix" id="vial-unit-suffix">mg</span>
           </div>
         </div>
       </div>
@@ -834,6 +834,7 @@
           <div class="unit-toggle-group">
             <button class="unit-toggle-btn" data-unit="mcg">mcg</button>
             <button class="unit-toggle-btn active" data-unit="mg">mg</button>
+            <button class="unit-toggle-btn" data-unit="iu">IU</button>
           </div>
         </div>
         <div class="pills" id="dose-pills"></div>
@@ -919,6 +920,7 @@ document.addEventListener('DOMContentLoaded', function() {
       step4: 'Syringe Capacity',
       units: 'units',
       enterMg: 'Enter mg',
+      enterIU: 'Enter IU',
       enterMl: 'Enter ml',
       enterDose: 'Enter dose',
       empty: 'Select all values to calculate your dose',
@@ -927,7 +929,9 @@ document.addEventListener('DOMContentLoaded', function() {
       onSyringe: 'on a {n}u insulin syringe',
       concentration: 'Concentration',
       dosesPerVial: 'Doses per vial',
-      perDose: '{n} mg per dose',
+      perDose: '{n} {u} per dose',
+      concentrationIU: '{c} IU/ml',
+      concentrationIUmg: '≈ {m} mg/ml (1 IU = 0.333 mg)',
       copyResult: 'Copy result',
       reset: 'Reset',
       copied: 'Copied to clipboard',
@@ -958,6 +962,7 @@ document.addEventListener('DOMContentLoaded', function() {
       step4: 'Spritzenvolumen',
       units: 'Einheiten',
       enterMg: 'mg eingeben',
+      enterIU: 'IE eingeben',
       enterMl: 'ml eingeben',
       enterDose: 'Dosis eingeben',
       empty: 'Wähle alle Werte, um deine Dosis zu berechnen',
@@ -966,7 +971,9 @@ document.addEventListener('DOMContentLoaded', function() {
       onSyringe: 'auf einer {n}u Insulinspritze',
       concentration: 'Konzentration',
       dosesPerVial: 'Dosen pro Vial',
-      perDose: '{n} mg pro Dosis',
+      perDose: '{n} {u} pro Dosis',
+      concentrationIU: '{c} IE/ml',
+      concentrationIUmg: '≈ {m} mg/ml (1 IE = 0,333 mg)',
       copyResult: 'Ergebnis kopieren',
       reset: 'Zurücksetzen',
       copied: 'In Zwischenablage kopiert',
@@ -1012,9 +1019,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // ---------- Data ----------
   var VIAL_PRESETS = [1, 2, 5, 10, 15, 20, 30, 50];
+  var VIAL_PRESETS_IU = [4, 8, 10, 12, 16, 24, 36];
   var WATER_PRESETS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
   var DOSE_PRESETS_MCG = [100, 200, 250, 500, 750, 1000];
   var DOSE_PRESETS_MG = [0.1, 0.25, 0.5, 1, 2, 2.5, 5, 7.5, 10];
+  var DOSE_PRESETS_IU = [0.5, 1, 1.5, 2, 2.5, 3, 4];
   var SYRINGE_PRESETS = [30, 50, 100];
 
   var PEPTIDE_DEFAULTS = {
@@ -1060,7 +1069,8 @@ document.addEventListener('DOMContentLoaded', function() {
     'GHRH':              { vial: 5,  water: 2.0, dose: 0.1,  doseUnit: 'mg', syringe: 100 },
     'ModGRF 1-29':       { vial: 5,  water: 2.0, dose: 0.1,  doseUnit: 'mg', syringe: 100 },
     'Follistatin-315':   { vial: 1,  water: 2.0, dose: 0.1,  doseUnit: 'mg', syringe: 100 },
-    'Follistatin-344':   { vial: 1,  water: 2.0, dose: 0.1,  doseUnit: 'mg', syringe: 100 }
+    'Follistatin-344':   { vial: 1,  water: 2.0, dose: 0.1,  doseUnit: 'mg', syringe: 100 },
+    'HGH (Somatropin)':  { vial: 10, water: 1.0, dose: 2,    doseUnit: 'iu', syringe: 100 }
   };
 
   // ---------- State ----------
@@ -1099,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var r = getRecommended();
     if (!r) return false;
     if (r.doseUnit === state.doseUnit) return r.dose === v;
-    // Convert recommended dose to current unit and compare
+    if (r.doseUnit === 'iu' || state.doseUnit === 'iu') return false;
     var converted = r.doseUnit === 'mg' && state.doseUnit === 'mcg' ? r.dose * 1000
                   : r.doseUnit === 'mcg' && state.doseUnit === 'mg' ? r.dose / 1000
                   : r.dose;
@@ -1138,7 +1148,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderVialPills() {
-    buildPills('vial-pills', VIAL_PRESETS, function(v) { return v + 'mg'; }, state.vial, function(v) {
+    var isIU = state.doseUnit === 'iu';
+    var presets = isIU ? VIAL_PRESETS_IU : VIAL_PRESETS;
+    var unit = isIU ? 'IU' : 'mg';
+    buildPills('vial-pills', presets, function(v) { return v + unit; }, state.vial, function(v) {
       if (v === 'custom') {
         document.getElementById('vial-custom').style.display = 'flex';
         document.getElementById('vial-input').focus();
@@ -1149,6 +1162,10 @@ document.addEventListener('DOMContentLoaded', function() {
         update();
       }
     }, isRecommendedVial);
+    var vialSuffix = document.getElementById('vial-unit-suffix');
+    if (vialSuffix) vialSuffix.textContent = unit;
+    var vialInput = document.getElementById('vial-input');
+    if (vialInput) vialInput.placeholder = isIU ? t('enterIU') : t('enterMg');
   }
 
   function renderWaterPills() {
@@ -1166,8 +1183,8 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderDosePills() {
-    var presets = state.doseUnit === 'mcg' ? DOSE_PRESETS_MCG : DOSE_PRESETS_MG;
-    var unit = state.doseUnit;
+    var presets = state.doseUnit === 'mcg' ? DOSE_PRESETS_MCG : state.doseUnit === 'iu' ? DOSE_PRESETS_IU : DOSE_PRESETS_MG;
+    var unit = state.doseUnit === 'iu' ? 'IU' : state.doseUnit;
     buildPills('dose-pills', presets, function(v) { return v + unit; }, state.dose, function(v) {
       if (v === 'custom') {
         document.getElementById('dose-custom').style.display = 'flex';
@@ -1179,7 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
         update();
       }
     }, isRecommendedDose);
-    document.getElementById('dose-unit-suffix').textContent = state.doseUnit;
+    document.getElementById('dose-unit-suffix').textContent = unit;
     var unitBtns = document.querySelectorAll('.unit-toggle-btn');
     for (var i = 0; i < unitBtns.length; i++) {
       if (unitBtns[i].getAttribute('data-unit') === state.doseUnit) {
@@ -1245,9 +1262,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('step-3').classList.toggle('complete', state.dose != null && state.dose > 0);
     document.getElementById('step-4').classList.toggle('complete', state.syringe != null);
 
-    document.getElementById('hint-1').textContent = state.vial != null ? state.vial + ' mg' : 'mg';
+    var vialUnit = state.doseUnit === 'iu' ? 'IU' : 'mg';
+    var doseUnitLabel = state.doseUnit === 'iu' ? 'IU' : state.doseUnit;
+    document.getElementById('hint-1').textContent = state.vial != null ? state.vial + ' ' + vialUnit : vialUnit;
     document.getElementById('hint-2').textContent = state.water != null ? state.water + ' ml' : 'ml';
-    document.getElementById('hint-3').textContent = state.dose != null ? formatNum(state.dose) + ' ' + state.doseUnit : '';
+    document.getElementById('hint-3').textContent = state.dose != null ? formatNum(state.dose) + ' ' + doseUnitLabel : '';
   }
 
   function formatNum(n, max) {
@@ -1418,13 +1437,17 @@ document.addEventListener('DOMContentLoaded', function() {
       '<div class="stats-grid">' +
         '<div class="stat">' +
           '<div class="stat-label">' + t('concentration') + '</div>' +
-          '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">mg/ml</span></div>' +
-          '<div class="stat-sub">' + formatNum(concentration * 1000, 1) + ' mcg/ml</div>' +
+          (state.doseUnit === 'iu'
+            ? '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">IU/ml</span></div>' +
+              '<div class="stat-sub">≈ ' + formatNum(concentration / 3, 3) + ' mg/ml</div>'
+            : '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">mg/ml</span></div>' +
+              '<div class="stat-sub">' + formatNum(concentration * 1000, 1) + ' mcg/ml</div>'
+          ) +
         '</div>' +
         '<div class="stat">' +
           '<div class="stat-label">' + t('dosesPerVial') + '</div>' +
           '<div class="stat-value">' + formatNum(totalDoses, 1) + '</div>' +
-          '<div class="stat-sub">' + t('perDose', { n: formatNum(result.doseMg, 4) }) + '</div>' +
+          '<div class="stat-sub">' + t('perDose', { n: formatNum(state.doseUnit === 'iu' ? state.dose : result.doseMg, 4), u: state.doseUnit === 'iu' ? 'IU' : 'mg' }) + '</div>' +
         '</div>' +
       '</div>' +
       alertHtml +
@@ -1533,7 +1556,13 @@ document.addEventListener('DOMContentLoaded', function() {
     unitToggleBtns[u].addEventListener('click', function() {
       var newUnit = this.getAttribute('data-unit');
       if (newUnit === state.doseUnit) return;
-      if (state.dose !== null) {
+      var crossingIU = (newUnit === 'iu') !== (state.doseUnit === 'iu');
+      if (crossingIU) {
+        state.dose = null;
+        state.vial = null;
+        document.getElementById('vial-custom').style.display = 'none';
+        document.getElementById('vial-input').value = '';
+      } else if (state.dose !== null) {
         if (newUnit === 'mg' && state.doseUnit === 'mcg') {
           state.dose = state.dose / 1000;
         } else if (newUnit === 'mcg' && state.doseUnit === 'mg') {
@@ -1561,7 +1590,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // ---------- Init ----------
   loadState();
 
-  if (state.vial != null && VIAL_PRESETS.indexOf(state.vial) === -1) {
+  var vialPresets = state.doseUnit === 'iu' ? VIAL_PRESETS_IU : VIAL_PRESETS;
+  if (state.vial != null && vialPresets.indexOf(state.vial) === -1) {
     document.getElementById('vial-custom').style.display = 'flex';
     document.getElementById('vial-input').value = state.vial;
   }
@@ -1569,7 +1599,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('water-custom').style.display = 'flex';
     document.getElementById('water-input').value = state.water;
   }
-  var dosePresets = state.doseUnit === 'mcg' ? DOSE_PRESETS_MCG : DOSE_PRESETS_MG;
+  var dosePresets = state.doseUnit === 'mcg' ? DOSE_PRESETS_MCG : state.doseUnit === 'iu' ? DOSE_PRESETS_IU : DOSE_PRESETS_MG;
   if (state.dose != null && dosePresets.indexOf(state.dose) === -1) {
     document.getElementById('dose-custom').style.display = 'flex';
     document.getElementById('dose-input').value = state.dose;
