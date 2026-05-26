@@ -481,8 +481,8 @@
   /* Mobile (≤560 px): keep syringe side-by-side, shrink spacing */
   @media (max-width: 560px) {
     .result-layout { gap: 12px; align-items: stretch; }
-    .result-info { flex-shrink: 1; min-width: 0; }
-    .result-syringe { align-self: stretch; flex-basis: auto; max-width: 80px; }
+    .result-info { flex: 1; min-width: 0; }
+    .result-syringe { flex: 1; align-self: stretch; }
     .result-syringe .syringe-viz { height: 100%; width: 100%; flex-shrink: 0; object-fit: contain; }
   }
 
@@ -980,7 +980,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.0.5</div>
+  <div class="version-tag">v1.0.6</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
