@@ -22,8 +22,8 @@
     --border-hover: rgba(255, 255, 255, 0.14);
     --border-active: rgba(34, 211, 238, 0.5);
     --text: #e8ecf4;
-    --text-dim: #8b95ad;
-    --text-faint: #5a6380;
+    --text-dim: #b8c7d6;
+    --text-faint: #9aaec0;
     --accent: #22d3ee;
     --accent-2: #a78bfa;
     --accent-glow: rgba(34, 211, 238, 0.4);
@@ -170,6 +170,7 @@
     display: grid;
     grid-template-columns: 1.1fr 1fr;
     gap: 24px;
+    align-items: stretch; /* beide Karten gleich hoch */
   }
 
   .card {
@@ -416,7 +417,73 @@
 
   .result-card {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    /* flex column so #result-content can fill the full card height */
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Result card: right column, same grid row as form — both stretch to equal height */
+  .layout .result-card {
+    grid-column: 2;
+    grid-row: 1;
+    padding-right: 8px; /* syringe closer to right edge */
+  }
+
+  /* The inner content div must also fill the card */
+  #result-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Result layout: stats left, syringe right */
+  .result-layout {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .result-info {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Stats grid must never shrink */
+  .result-layout .stats-grid {
+    flex-shrink: 0;
+  }
+
+  .result-layout .primary-result {
+    text-align: center;
+  }
+
+  .result-syringe {
+    flex-shrink: 0;
+    display: flex;
+    align-items: flex-start;
+  }
+
+  /* Syringe: clamped height so it stays readable on all screen sizes */
+  .result-syringe .syringe-viz {
+    height: clamp(260px, 52vh, 500px);
+    width: auto;
+    display: block;
+  }
+
+  /* Tablet (≤920 px): single column — result card moves below form */
+  @media (max-width: 920px) {
+    .layout .result-card { grid-column: 1; grid-row: auto; padding-right: 24px; }
+    .result-syringe .syringe-viz { height: clamp(240px, 45vh, 380px); }
+  }
+
+  /* Mobile (≤560 px): stack syringe below stats */
+  @media (max-width: 560px) {
+    .result-layout { flex-direction: column; align-items: center; }
+    .result-layout .primary-result { text-align: center; }
+    .result-syringe { width: 100%; justify-content: center; }
+    .result-syringe .syringe-viz { height: clamp(220px, 50vw, 300px); }
   }
 
   .result-card::before {
@@ -433,6 +500,11 @@
   .result-card.ready::before { opacity: 1; }
 
   .result-empty {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     padding: 40px 20px;
     color: var(--text-faint);
@@ -442,11 +514,7 @@
   .result-empty svg { margin: 0 auto 12px; opacity: 0.4; display: block; }
 
   .syringe-viz {
-    margin: 8px auto 24px;
     display: block;
-    max-width: 100%;
-    width: 100%;
-    height: auto;
   }
 
   .primary-result {
@@ -647,7 +715,7 @@
   }
 
   .fill-rect {
-    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .toast {
@@ -912,7 +980,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.0.1</div>
+  <div class="version-tag">v1.0.2</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
@@ -1298,108 +1366,118 @@ document.addEventListener('DOMContentLoaded', function() {
     var f = Math.max(0, Math.min(1, fillFraction));
     var overflow = fillFraction > 1;
 
-    // Needle on the LEFT. Fluid fills from the needle/hub end (left) toward the plunger (right).
-    var W = 560, H = 180;
-    var barrelX = 110, barrelY = 70, barrelW = 360, barrelH = 36;
-    var fillW = Math.min(barrelW, barrelW * f);
+    // Vertical syringe: needle points UP, plunger/thumb at BOTTOM.
+    // Fluid fills from the top (needle end) downward to the plunger.
+    var W = 150, H = 490;
+    var cx = 75; // horizontal center
+
+    var barrelW = 46;
+    var barrelX = cx - barrelW / 2; // = 52
+    var barrelY = 68;
+    var barrelH = 300;
+    var barrelEndY = barrelY + barrelH; // = 368
+
+    var fillH = Math.min(barrelH, barrelH * f);
+    var plungerY = barrelY + fillH; // where rubber stopper sits
+
     var fillColor = overflow ? '#f87171' : '#22d3ee';
     var fillColor2 = overflow ? '#fca5a5' : '#a78bfa';
 
+    // Scale ticks: 0 at top (needle end), max at bottom (plunger end)
     var majorTicks = capacityUnits === 30 ? 6 : capacityUnits === 50 ? 5 : 10;
     var minorPerMajor = 5;
     var totalMinor = majorTicks * minorPerMajor;
 
-    // Ticks: 0 at the left (needle/hub) end, max at the right (plunger) end
-    var tickMarks = '';
-    var tickLabels = '';
+    var tickMarks = '', tickLabels = '';
     for (var i = 0; i <= totalMinor; i++) {
-      var x = barrelX + (i / totalMinor) * barrelW;
+      var ty = barrelY + (i / totalMinor) * barrelH;
       var isMajor = i % minorPerMajor === 0;
-      var tickH = isMajor ? 9 : 5;
+      var tickLen = isMajor ? 9 : 5;
       var opacity = isMajor ? 0.85 : 0.45;
-      tickMarks += '<line x1="' + x + '" y1="' + barrelY + '" x2="' + x + '" y2="' + (barrelY + tickH) + '" stroke="rgba(232,236,244,' + opacity + ')" stroke-width="' + (isMajor ? 1.2 : 0.8) + '"/>';
+      var tickX = barrelX + barrelW;
+      tickMarks += '<line x1="' + tickX + '" y1="' + ty + '" x2="' + (tickX + tickLen) + '" y2="' + ty + '" stroke="rgba(232,236,244,' + opacity + ')" stroke-width="' + (isMajor ? 1.2 : 0.8) + '"/>';
       if (isMajor) {
         var labelVal = Math.round((i / totalMinor) * capacityUnits);
-        tickLabels += '<text x="' + x + '" y="' + (barrelY - 6) + '" fill="rgba(232,236,244,0.65)" font-size="10" text-anchor="middle" font-weight="500" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">' + labelVal + '</text>';
+        tickLabels += '<text x="' + (tickX + 13) + '" y="' + (ty + 4) + '" fill="rgba(232,236,244,0.65)" font-size="10" text-anchor="start" font-weight="500" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">' + labelVal + '</text>';
       }
     }
 
-    // Fluid sits against the left (needle) end. Fill rectangle starts at barrelX.
-    // The fluid surface (where the plunger meets liquid) is at barrelX + fillW.
-    var fluidEndX = barrelX + fillW;
-
+    // Indicator: horizontal dashed line at plunger position, label on left
     var indicator = '';
     if (f > 0) {
-      indicator = '<line x1="' + fluidEndX + '" y1="' + (barrelY - 18) + '" x2="' + fluidEndX + '" y2="' + (barrelY + barrelH + 18) + '" stroke="' + fillColor + '" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>' +
-                  '<rect x="' + (fluidEndX - 22) + '" y="' + (barrelY + barrelH + 14) + '" width="44" height="18" rx="4" fill="' + fillColor + '" opacity="0.15"/>' +
-                  '<text x="' + fluidEndX + '" y="' + (barrelY + barrelH + 26) + '" fill="' + fillColor + '" font-size="11" text-anchor="middle" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">' + formatNum(drawUnits, 1) + 'u</text>';
+      var indX1 = barrelX - 12, indX2 = barrelX + barrelW + 16;
+      indicator =
+        '<line x1="' + indX1 + '" y1="' + plungerY + '" x2="' + indX2 + '" y2="' + plungerY + '" stroke="' + fillColor + '" stroke-width="1.5" stroke-dasharray="4 3" opacity="0.85"/>' +
+        '<rect x="' + (barrelX - 40) + '" y="' + (plungerY - 10) + '" width="32" height="18" rx="4" fill="' + fillColor + '" opacity="0.18"/>' +
+        '<text x="' + (barrelX - 25) + '" y="' + (plungerY + 3) + '" fill="' + fillColor + '" font-size="11" text-anchor="middle" font-weight="700" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">' + formatNum(drawUnits, 1) + 'u</text>';
     }
 
-    // Plunger: rubber stopper sits at the fluid surface, rod extends right beyond the barrel.
-    var plungerHeadX = barrelX + fillW;
-    var barrelEndX = barrelX + barrelW;
-    var rodStartX = plungerHeadX + 4;
-    var rodEndX = barrelEndX + 60; // rod sticks out the right side
-    var thumbX = rodEndX + 6;
+    // Hub (between needle and barrel)
+    var hubY = barrelY - 24;
+    var hubH = 24;
+    // Needle
+    var needleTipY = 2;
 
-    // Needle geometry (left side)
-    var hubX = barrelX - 14;       // hub sits just left of barrel
-    var needleTipX = barrelX - 80; // needle extends further left
+    // Below barrel
+    var flangeY = barrelEndY + 2;
+    var flangeH = 8;
+    var flangeW = barrelW + 28;
+    var flangeX = cx - flangeW / 2;
+    var rodY = flangeY + flangeH;
+    var rodH = 66;
+    var thumbCY = rodY + rodH + 16;
 
     return '<svg class="syringe-viz" viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg">' +
       '<defs>' +
-        '<linearGradient id="fillGrad" x1="0%" y1="0%" x2="0%" y2="100%">' +
-          '<stop offset="0%" stop-color="' + fillColor + '" stop-opacity="0.55"/>' +
-          '<stop offset="50%" stop-color="' + fillColor2 + '" stop-opacity="0.85"/>' +
-          '<stop offset="100%" stop-color="' + fillColor + '" stop-opacity="0.55"/>' +
+        '<linearGradient id="fillGrad" x1="0%" y1="0%" x2="100%" y2="0%">' +
+          '<stop offset="0%" stop-color="' + fillColor + '" stop-opacity="0.5"/>' +
+          '<stop offset="50%" stop-color="' + fillColor2 + '" stop-opacity="0.9"/>' +
+          '<stop offset="100%" stop-color="' + fillColor + '" stop-opacity="0.5"/>' +
         '</linearGradient>' +
-        '<linearGradient id="barrelGlass" x1="0%" y1="0%" x2="0%" y2="100%">' +
+        '<linearGradient id="barrelGlass" x1="0%" y1="0%" x2="100%" y2="0%">' +
           '<stop offset="0%" stop-color="rgba(255,255,255,0.02)"/>' +
-          '<stop offset="20%" stop-color="rgba(255,255,255,0.12)"/>' +
+          '<stop offset="15%" stop-color="rgba(255,255,255,0.13)"/>' +
           '<stop offset="50%" stop-color="rgba(255,255,255,0.04)"/>' +
-          '<stop offset="80%" stop-color="rgba(255,255,255,0.12)"/>' +
+          '<stop offset="85%" stop-color="rgba(255,255,255,0.13)"/>' +
           '<stop offset="100%" stop-color="rgba(255,255,255,0.02)"/>' +
         '</linearGradient>' +
-        '<linearGradient id="plungerRod" x1="0%" y1="0%" x2="0%" y2="100%">' +
-          '<stop offset="0%" stop-color="rgba(255,255,255,0.08)"/>' +
-          '<stop offset="50%" stop-color="rgba(255,255,255,0.18)"/>' +
-          '<stop offset="100%" stop-color="rgba(255,255,255,0.08)"/>' +
-        '</linearGradient>' +
-        '<linearGradient id="plungerHead" x1="0%" y1="0%" x2="0%" y2="100%">' +
+        '<linearGradient id="plungerHead" x1="0%" y1="0%" x2="100%" y2="0%">' +
           '<stop offset="0%" stop-color="#1a1f2e"/>' +
           '<stop offset="50%" stop-color="#2a3142"/>' +
           '<stop offset="100%" stop-color="#1a1f2e"/>' +
         '</linearGradient>' +
       '</defs>' +
-      // Needle (left)
-      '<line x1="' + needleTipX + '" y1="' + (barrelY + barrelH/2) + '" x2="' + hubX + '" y2="' + (barrelY + barrelH/2) + '" stroke="rgba(232,236,244,0.5)" stroke-width="2.5" stroke-linecap="round"/>' +
-      '<line x1="' + needleTipX + '" y1="' + (barrelY + barrelH/2) + '" x2="' + hubX + '" y2="' + (barrelY + barrelH/2) + '" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>' +
-      '<line x1="' + needleTipX + '" y1="' + (barrelY + barrelH/2 - 1.5) + '" x2="' + (needleTipX + 4) + '" y2="' + (barrelY + barrelH/2 + 1.5) + '" stroke="rgba(232,236,244,0.8)" stroke-width="1.2" stroke-linecap="round"/>' +
-      // Hub (left)
-      '<rect x="' + hubX + '" y="' + (barrelY + barrelH/2 - 8) + '" width="14" height="16" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.25)" stroke-width="1" rx="1"/>' +
-      // Finger flange (right end of barrel)
-      '<rect x="' + (barrelEndX + 2) + '" y="' + (barrelY - 12) + '" width="6" height="' + (barrelH + 24) + '" rx="2" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>' +
-      // Plunger rod (right)
-      '<rect x="' + rodStartX + '" y="' + (barrelY + barrelH/2 - 2) + '" width="' + Math.max(0, rodEndX - rodStartX) + '" height="4" fill="url(#plungerRod)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>' +
-      '<rect x="' + rodStartX + '" y="' + (barrelY + barrelH/2 - 8) + '" width="' + Math.max(0, rodEndX - rodStartX) + '" height="2" fill="rgba(255,255,255,0.08)"/>' +
-      '<rect x="' + rodStartX + '" y="' + (barrelY + barrelH/2 + 6) + '" width="' + Math.max(0, rodEndX - rodStartX) + '" height="2" fill="rgba(255,255,255,0.08)"/>' +
-      // Thumb pad (far right)
-      '<ellipse cx="' + thumbX + '" cy="' + (barrelY + barrelH/2) + '" rx="14" ry="22" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>' +
-      '<ellipse cx="' + thumbX + '" cy="' + (barrelY + barrelH/2) + '" rx="14" ry="22" fill="url(#barrelGlass)"/>' +
-      // Barrel
+      // Needle (pointing up)
+      '<line x1="' + cx + '" y1="' + needleTipY + '" x2="' + cx + '" y2="' + hubY + '" stroke="rgba(232,236,244,0.5)" stroke-width="2.5" stroke-linecap="round"/>' +
+      '<line x1="' + cx + '" y1="' + needleTipY + '" x2="' + cx + '" y2="' + hubY + '" stroke="rgba(255,255,255,0.7)" stroke-width="1"/>' +
+      // Needle bevel at tip
+      '<line x1="' + (cx - 1.5) + '" y1="' + (needleTipY + 3) + '" x2="' + (cx + 1.5) + '" y2="' + needleTipY + '" stroke="rgba(232,236,244,0.8)" stroke-width="1.2" stroke-linecap="round"/>' +
+      // Hub
+      '<rect x="' + (cx - 14) + '" y="' + hubY + '" width="28" height="' + hubH + '" fill="rgba(255,255,255,0.14)" stroke="rgba(255,255,255,0.25)" stroke-width="1" rx="1"/>' +
+      // Barrel glass shell
       '<rect x="' + barrelX + '" y="' + barrelY + '" width="' + barrelW + '" height="' + barrelH + '" fill="url(#barrelGlass)" stroke="rgba(255,255,255,0.22)" stroke-width="1" rx="3"/>' +
-      '<rect x="' + (barrelX + 1) + '" y="' + (barrelY + 1) + '" width="' + (barrelW - 2) + '" height="2" fill="rgba(0,0,0,0.25)" rx="1"/>' +
-      // Fluid (against left/needle end)
-      '<rect class="fill-rect" x="' + (barrelX + 1) + '" y="' + (barrelY + 2) + '" width="' + Math.max(0, fillW - 2) + '" height="' + (barrelH - 4) + '" fill="url(#fillGrad)" rx="2"/>' +
-      (f > 0 ? '<rect x="' + (barrelX + 1) + '" y="' + (barrelY + 3) + '" width="' + Math.max(0, fillW - 2) + '" height="2" fill="rgba(255,255,255,0.35)" rx="1"/>' : '') +
-      // Plunger head (rubber stopper at fluid surface)
-      '<rect x="' + (plungerHeadX - 4) + '" y="' + (barrelY + 2) + '" width="10" height="' + (barrelH - 4) + '" fill="url(#plungerHead)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" rx="1.5"/>' +
-      '<line x1="' + (plungerHeadX - 1) + '" y1="' + (barrelY + 4) + '" x2="' + (plungerHeadX - 1) + '" y2="' + (barrelY + barrelH - 4) + '" stroke="rgba(255,255,255,0.15)" stroke-width="0.6"/>' +
-      '<line x1="' + (plungerHeadX + 3) + '" y1="' + (barrelY + 4) + '" x2="' + (plungerHeadX + 3) + '" y2="' + (barrelY + barrelH - 4) + '" stroke="rgba(0,0,0,0.3)" stroke-width="0.6"/>' +
-      tickMarks +
-      tickLabels +
-      indicator +
-      '<text x="' + (barrelX + barrelW / 2) + '" y="' + (barrelY + barrelH + 28) + '" fill="rgba(139, 149, 173, 0.6)" font-size="11" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" opacity="' + (f > 0 ? 0 : 1) + '">' + capacityUnits + 'u ' + (lang === 'de' ? 'Insulinspritze' : 'insulin syringe') + '</text>' +
+      // Left edge shadow
+      '<rect x="' + (barrelX + 1) + '" y="' + (barrelY + 1) + '" width="2" height="' + (barrelH - 2) + '" fill="rgba(0,0,0,0.25)" rx="1"/>' +
+      // Fluid (fills from needle/top down to plunger)
+      (fillH > 2 ? '<rect class="fill-rect" x="' + (barrelX + 2) + '" y="' + (barrelY + 1) + '" width="' + (barrelW - 4) + '" height="' + Math.max(0, fillH - 2) + '" fill="url(#fillGrad)" rx="2"/>' : '') +
+      // Fluid shine stripe
+      (f > 0 ? '<rect x="' + (barrelX + 3) + '" y="' + (barrelY + 2) + '" width="2" height="' + Math.max(0, fillH - 5) + '" fill="rgba(255,255,255,0.35)" rx="1"/>' : '') +
+      // Plunger head (rubber stopper) at fluid bottom
+      '<rect x="' + (barrelX + 2) + '" y="' + (plungerY - 5) + '" width="' + (barrelW - 4) + '" height="10" fill="url(#plungerHead)" stroke="rgba(255,255,255,0.3)" stroke-width="0.8" rx="1.5"/>' +
+      '<line x1="' + (barrelX + 6) + '" y1="' + (plungerY - 2) + '" x2="' + (barrelX + barrelW - 6) + '" y2="' + (plungerY - 2) + '" stroke="rgba(255,255,255,0.15)" stroke-width="0.6"/>' +
+      '<line x1="' + (barrelX + 6) + '" y1="' + (plungerY + 2) + '" x2="' + (barrelX + barrelW - 6) + '" y2="' + (plungerY + 2) + '" stroke="rgba(0,0,0,0.3)" stroke-width="0.6"/>' +
+      tickMarks + tickLabels + indicator +
+      // Finger flange (horizontal wings at bottom of barrel)
+      '<rect x="' + flangeX + '" y="' + flangeY + '" width="' + flangeW + '" height="' + flangeH + '" rx="2" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.18)" stroke-width="1"/>' +
+      // Plunger rod
+      '<rect x="' + (cx - 3) + '" y="' + rodY + '" width="6" height="' + rodH + '" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.15)" stroke-width="0.5"/>' +
+      '<rect x="' + (cx - 10) + '" y="' + rodY + '" width="2" height="' + rodH + '" fill="rgba(255,255,255,0.06)"/>' +
+      '<rect x="' + (cx + 8) + '" y="' + rodY + '" width="2" height="' + rodH + '" fill="rgba(255,255,255,0.06)"/>' +
+      // Thumb pad
+      '<ellipse cx="' + cx + '" cy="' + thumbCY + '" rx="22" ry="14" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>' +
+      '<ellipse cx="' + cx + '" cy="' + thumbCY + '" rx="22" ry="14" fill="url(#barrelGlass)"/>' +
+      // Capacity label (shown when syringe is empty)
+      '<text x="' + cx + '" y="' + (H - 6) + '" fill="rgba(139,149,173,0.5)" font-size="10" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" opacity="' + (f > 0 ? 0 : 0.9) + '">' + capacityUnits + 'u</text>' +
     '</svg>';
   }
 
@@ -1443,35 +1521,40 @@ document.addEventListener('DOMContentLoaded', function() {
         '</div>';
     }
 
+    // Render layout with info on the left and syringe on the right (syringe rotated via CSS)
     content.innerHTML =
-      syringeSvg(fillFraction, state.syringe, unitsToDraw) +
-      '<div class="primary-result">' +
-        '<div class="label">' + t('drawTo') + '</div>' +
-        '<div class="value">' + formatNum(unitsToDraw, 2) + '<span class="unit-label">' + t('units') + '</span></div>' +
-        '<div class="sub">≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { n: state.syringe }) + '</div>' +
-      '</div>' +
-      '<div class="stats-grid">' +
-        '<div class="stat">' +
-          '<div class="stat-label">' + t('concentration') + '</div>' +
-          (state.doseUnit === 'iu'
-            ? '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">IU/ml</span></div>' +
-              '<div class="stat-sub">≈ ' + formatNum(concentration / 3, 3) + ' mg/ml</div>'
-            : '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">mg/ml</span></div>' +
-              '<div class="stat-sub">' + formatNum(concentration * 1000, 1) + ' mcg/ml</div>'
-          ) +
+      '<div class="result-layout">' +
+        '<div class="result-info">' +
+          '<div class="primary-result">' +
+            '<div class="label">' + t('drawTo') + '</div>' +
+            '<div class="value">' + formatNum(unitsToDraw, 2) + '<span class="unit-label">' + t('units') + '</span></div>' +
+            '<div class="sub">≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { n: state.syringe }) + '</div>' +
+          '</div>' +
+          '<div class="stats-grid">' +
+            '<div class="stat">' +
+              '<div class="stat-label">' + t('concentration') + '</div>' +
+              (state.doseUnit === 'iu'
+                ? '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">IU/ml</span></div>' +
+                  '<div class="stat-sub">≈ ' + formatNum(concentration / 3, 3) + ' mg/ml</div>'
+                : '<div class="stat-value">' + formatNum(concentration, 3) + ' <span style="font-size:12px;color:var(--text-dim)">mg/ml</span></div>' +
+                  '<div class="stat-sub">' + formatNum(concentration * 1000, 1) + ' mcg/ml</div>'
+              ) +
+            '</div>' +
+            '<div class="stat">' +
+              '<div class="stat-label">' + t('dosesPerVial') + '</div>' +
+              '<div class="stat-value">' + formatNum(totalDoses, 1) + '</div>' +
+              '<div class="stat-sub">' + t('perDose', { n: formatNum(state.doseUnit === 'iu' ? state.dose : result.doseMg, 4), u: state.doseUnit === 'iu' ? 'IU' : 'mg' }) + '</div>' +
+            '</div>' +
+          '</div>' +
+          alertHtml +
+          '<div class="actions">' +
+            '<button class="btn" id="reset-btn" type="button">' +
+              '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>' +
+              t('reset') +
+            '</button>' +
+          '</div>' +
         '</div>' +
-        '<div class="stat">' +
-          '<div class="stat-label">' + t('dosesPerVial') + '</div>' +
-          '<div class="stat-value">' + formatNum(totalDoses, 1) + '</div>' +
-          '<div class="stat-sub">' + t('perDose', { n: formatNum(state.doseUnit === 'iu' ? state.dose : result.doseMg, 4), u: state.doseUnit === 'iu' ? 'IU' : 'mg' }) + '</div>' +
-        '</div>' +
-      '</div>' +
-      alertHtml +
-      '<div class="actions">' +
-        '<button class="btn" id="reset-btn" type="button">' +
-          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 109-9 9.75 9.75 0 00-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>' +
-          t('reset') +
-        '</button>' +
+        '<div class="result-syringe">' + syringeSvg(fillFraction, state.syringe, unitsToDraw) + '</div>' +
       '</div>';
 
     document.getElementById('reset-btn').addEventListener('click', function() {
