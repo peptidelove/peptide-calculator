@@ -1090,7 +1090,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.1.1</div>
+  <div class="version-tag">v1.1.2</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
@@ -1110,6 +1110,7 @@ document.addEventListener('DOMContentLoaded', function() {
       selectPeptide: '— Select peptide —',
       step1: 'Total Vial Amount',
       step2: 'Bacteriostatic Water',
+      step2spray: 'NaCl (Saline)',
       step3: 'Desired Dose',
       modeSyringe: 'Syringe',
       modeSpray: 'Nose Spray',
@@ -1162,6 +1163,7 @@ document.addEventListener('DOMContentLoaded', function() {
       selectPeptide: '— Peptid auswählen —',
       step1: 'Gesamte Vialmenge',
       step2: 'Bakteriostatisches Wasser',
+      step2spray: 'NaCl (Kochsalzlösung)',
       step3: 'Gewünschte Dosis',
       modeSyringe: 'Spritze',
       modeSpray: 'Nasenspray',
@@ -1554,6 +1556,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('hint-4').textContent = state.mode === 'syringe'
       ? (state.syringe != null ? 'U' + state.syringe : '')
       : (state.sprayVolume != null ? state.sprayVolume + ' ml' : '');
+
+    // Update step 2 title based on mode
+    var step2Title = document.querySelector('#step-2 .step-title');
+    if (step2Title) step2Title.textContent = t(state.mode === 'syringe' ? 'step2' : 'step2spray');
 
     // Update step 4 title based on mode
     var step4Title = document.querySelector('#step-4 .step-title');
