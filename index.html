@@ -313,7 +313,7 @@
     flex: 1;
   }
 
-  input[type="number"], select {
+  input[type="text"], select {
     width: 100%;
     background: var(--surface);
     border: 1px solid var(--border);
@@ -324,24 +324,15 @@
     font-family: inherit;
     outline: none;
     transition: all 0.15s ease;
-    -moz-appearance: textfield;
   }
 
-  input[type="number"]::-webkit-outer-spin-button,
-  input[type="number"]::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
-  }
-
-  input[type="number"]:focus, select:focus {
+  input[type="text"]:focus, select:focus {
     border-color: var(--border-active);
     background: var(--surface-active);
     box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
   }
 
   select {
-    appearance: none;
-    -webkit-appearance: none;
     background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'><path fill='%238b95ad' d='M6 8L2 4h8z'/></svg>");
     background-repeat: no-repeat;
     background-position: right 14px center;
@@ -851,10 +842,16 @@
             <line x1="16" y1="30" x2="22" y2="30" stroke="rgba(255,255,255,0.2)" stroke-width="0.5"/>
           </svg>
         </div>
+        <div class="dose-row" style="margin-bottom:10px">
+          <div class="unit-toggle-group" id="vial-unit-toggle">
+            <button class="unit-toggle-btn active" data-vial-unit="mg">mg</button>
+            <button class="unit-toggle-btn" data-vial-unit="iu">IU</button>
+          </div>
+        </div>
         <div class="pills" id="vial-pills"></div>
         <div class="custom-row" id="vial-custom" style="display:none">
           <div class="input-wrap">
-            <input type="number" id="vial-input" step="0.1" min="0" inputmode="decimal" data-i18n-placeholder="enterMg" placeholder="Enter mg">
+            <input type="text" id="vial-input" inputmode="decimal" data-i18n-placeholder="enterMg" placeholder="Enter mg">
             <span class="unit-suffix" id="vial-unit-suffix">mg</span>
           </div>
         </div>
@@ -884,7 +881,7 @@
         <div class="pills" id="water-pills"></div>
         <div class="custom-row" id="water-custom" style="display:none">
           <div class="input-wrap">
-            <input type="number" id="water-input" step="0.1" min="0" inputmode="decimal" data-i18n-placeholder="enterMl" placeholder="Enter ml">
+            <input type="text" id="water-input" inputmode="decimal" data-i18n-placeholder="enterMl" placeholder="Enter ml">
             <span class="unit-suffix">ml</span>
           </div>
         </div>
@@ -923,7 +920,7 @@
         <div class="pills" id="dose-pills"></div>
         <div class="custom-row" id="dose-custom" style="display:none">
           <div class="input-wrap">
-            <input type="number" id="dose-input" step="any" min="0" inputmode="decimal" data-i18n-placeholder="enterDose" placeholder="Enter dose">
+            <input type="text" id="dose-input" inputmode="decimal" data-i18n-placeholder="enterDose" placeholder="Enter dose">
             <span class="unit-suffix" id="dose-unit-suffix">mg</span>
           </div>
         </div>
@@ -932,8 +929,8 @@
       <div class="step" id="step-4">
         <div class="step-header">
           <div class="step-num">4</div>
-          <div class="step-title" data-i18n="step4">Syringe Capacity</div>
-          <div class="step-hint" data-i18n="units">units</div>
+          <div class="step-title" data-i18n="step4">Syringe Type</div>
+          <div class="step-hint" id="hint-4"></div>
           <svg class="step-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <linearGradient id="syrFill" x1="0%" y1="0%" x2="100%" y2="0%">
@@ -960,8 +957,8 @@
         <div class="pills" id="syringe-pills"></div>
         <div class="custom-row" id="syringe-custom" style="display:none">
           <div class="input-wrap">
-            <input type="number" id="syringe-input" step="1" min="1" inputmode="numeric" data-i18n-placeholder="enterUnits" placeholder="Enter units">
-            <span class="unit-suffix" data-i18n="units">units</span>
+            <input type="text" id="syringe-input" inputmode="numeric" data-i18n-placeholder="enterUnitsPerMl" placeholder="Units/ml">
+            <span class="unit-suffix">units/ml</span>
           </div>
         </div>
       </div>
@@ -986,7 +983,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.0.7</div>
+  <div class="version-tag">v1.0.8</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
@@ -1007,17 +1004,18 @@ document.addEventListener('DOMContentLoaded', function() {
       step1: 'Total Vial Amount',
       step2: 'Bacteriostatic Water',
       step3: 'Desired Dose',
-      step4: 'Syringe Capacity',
+      step4: 'Syringe Type',
       units: 'units',
       enterMg: 'Enter mg',
       enterIU: 'Enter IU',
       enterMl: 'Enter ml',
       enterDose: 'Enter dose',
       enterUnits: 'Enter units',
+      enterUnitsPerMl: 'Units/ml (e.g. 40, 50, 100)',
       empty: 'Select all values to calculate your dose',
       legendRecommended: 'Recommended for selected peptide',
       drawTo: 'Draw to',
-      onSyringe: 'on a {n}u insulin syringe',
+      onSyringe: 'on a {n}u {t} insulin syringe',
       concentration: 'Concentration',
       dosesPerVial: 'Doses per vial',
       perDose: '{n} {u} per dose',
@@ -1035,7 +1033,7 @@ document.addEventListener('DOMContentLoaded', function() {
       copyVial: 'Vial: {v} mg in {w} ml BAC water',
       copyConc: 'Concentration: {c} mg/ml',
       copyDose: 'Dose: {d} {u} ({m} mg)',
-      copyDraw: 'Draw: {u} units ({ml} ml) on {s}u syringe',
+      copyDraw: 'Draw: {u} units ({ml} ml) on {s}u {t} syringe',
       copyDoses: 'Doses per vial: {n}',
       peptideName: 'Peptide',
       other: 'Other'
@@ -1050,17 +1048,18 @@ document.addEventListener('DOMContentLoaded', function() {
       step1: 'Gesamte Vialmenge',
       step2: 'Bakteriostatisches Wasser',
       step3: 'Gewünschte Dosis',
-      step4: 'Spritzenvolumen',
+      step4: 'Spritzentyp',
       units: 'Einheiten',
       enterMg: 'mg eingeben',
       enterIU: 'IE eingeben',
       enterMl: 'ml eingeben',
       enterDose: 'Dosis eingeben',
       enterUnits: 'Einheiten eingeben',
+      enterUnitsPerMl: 'Einheiten/ml (z.B. 40, 50, 100)',
       empty: 'Wähle alle Werte, um deine Dosis zu berechnen',
       legendRecommended: 'Empfohlen für ausgewähltes Peptid',
       drawTo: 'Aufziehen auf',
-      onSyringe: 'auf einer {n}u Insulinspritze',
+      onSyringe: 'auf einer {n}u {t} Insulinspritze',
       concentration: 'Konzentration',
       dosesPerVial: 'Dosen pro Vial',
       perDose: '{n} {u} pro Dosis',
@@ -1078,7 +1077,7 @@ document.addEventListener('DOMContentLoaded', function() {
       copyVial: 'Vial: {v} mg in {w} ml BAC-Wasser',
       copyConc: 'Konzentration: {c} mg/ml',
       copyDose: 'Dosis: {d} {u} ({m} mg)',
-      copyDraw: 'Aufziehen: {u} Einheiten ({ml} ml) auf {s}u Spritze',
+      copyDraw: 'Aufziehen: {u} Einheiten ({ml} ml) auf {s}u {t} Spritze',
       copyDoses: 'Dosen pro Vial: {n}',
       peptideName: 'Peptid',
       other: 'Andere'
@@ -1110,13 +1109,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // ---------- Data ----------
-  var VIAL_PRESETS = [1, 2, 5, 10, 15, 20, 30, 50];
+  var VIAL_PRESETS = [5, 10, 15, 20, 30, 50];
   var VIAL_PRESETS_IU = [4, 8, 10, 12, 16, 24, 36];
   var WATER_PRESETS = [0.5, 1.0, 1.5, 2.0, 2.5, 3.0];
   var DOSE_PRESETS_MCG = [100, 200, 250, 500, 750, 1000];
-  var DOSE_PRESETS_MG = [0.1, 0.25, 0.5, 1, 2, 2.5, 5, 7.5, 10];
+  var DOSE_PRESETS_MG = [0.5, 1, 2, 2.5, 5];
   var DOSE_PRESETS_IU = [0.5, 1, 1.5, 2, 2.5, 3, 4];
-  var SYRINGE_PRESETS = [30, 40, 50, 100];
+  var SYRINGE_PRESETS = [40, 50, 100];
 
   var PEPTIDE_DEFAULTS = {
     'BPC-157':           { vial: 5,  water: 2.0, dose: 0.25, doseUnit: 'mg', syringe: 100 },
@@ -1174,6 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
     dose: null,
     doseUnit: 'mg',
     syringe: null,
+    syringeType: 100,
     lang: 'de',
     autoApplied: false
   };
@@ -1258,6 +1258,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (vialSuffix) vialSuffix.textContent = unit;
     var vialInput = document.getElementById('vial-input');
     if (vialInput) vialInput.placeholder = isIU ? t('enterIU') : t('enterMg');
+    // Update vial unit toggle active state
+    var vialUnitBtns = document.querySelectorAll('[data-vial-unit]');
+    for (var vi = 0; vi < vialUnitBtns.length; vi++) {
+      var btnUnit = vialUnitBtns[vi].getAttribute('data-vial-unit');
+      var isActive = isIU ? btnUnit === 'iu' : btnUnit === 'mg';
+      if (isActive) {
+        vialUnitBtns[vi].classList.add('active');
+      } else {
+        vialUnitBtns[vi].classList.remove('active');
+      }
+    }
   }
 
   function renderWaterPills() {
@@ -1289,7 +1300,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     }, isRecommendedDose);
     document.getElementById('dose-unit-suffix').textContent = unit;
-    var unitBtns = document.querySelectorAll('.unit-toggle-btn');
+    var unitBtns = document.querySelectorAll('[data-unit]');
     for (var i = 0; i < unitBtns.length; i++) {
       if (unitBtns[i].getAttribute('data-unit') === state.doseUnit) {
         unitBtns[i].classList.add('active');
@@ -1300,12 +1311,13 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   function renderSyringePills() {
-    buildPills('syringe-pills', SYRINGE_PRESETS, function(v) { return v + ' ' + t('units'); }, state.syringe, function(v) {
+    buildPills('syringe-pills', SYRINGE_PRESETS, function(v) { return 'U' + v; }, state.syringe, function(v) {
       if (v === 'custom') {
         document.getElementById('syringe-custom').style.display = 'flex';
         document.getElementById('syringe-input').focus();
       } else {
         state.syringe = v;
+        state.syringeType = v;
         document.getElementById('syringe-custom').style.display = 'none';
         document.getElementById('syringe-input').value = '';
         update();
@@ -1349,7 +1361,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var doseMg = state.doseUnit === 'mcg' ? state.dose / 1000 : state.dose;
     var concentration = state.vial / state.water;
     var volumeMl = doseMg / concentration;
-    var unitsToDraw = volumeMl * 100;
+    var unitsToDraw = volumeMl * (state.syringeType || 100);
     var totalDoses = state.vial / doseMg;
 
     return { concentration: concentration, volumeMl: volumeMl, unitsToDraw: unitsToDraw, totalDoses: totalDoses, doseMg: doseMg };
@@ -1366,6 +1378,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('hint-1').textContent = state.vial != null ? state.vial + ' ' + vialUnit : vialUnit;
     document.getElementById('hint-2').textContent = state.water != null ? state.water + ' ml' : 'ml';
     document.getElementById('hint-3').textContent = state.dose != null ? formatNum(state.dose) + ' ' + doseUnitLabel : '';
+    document.getElementById('hint-4').textContent = state.syringe != null ? 'U' + state.syringe : '';
   }
 
   function formatNum(n, max) {
@@ -1399,7 +1412,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var fillColor2 = overflow ? '#fca5a5' : '#a78bfa';
 
     // Scale ticks: 0 at top (needle end), max at bottom (plunger end)
-    var majorTicks = capacityUnits === 30 ? 6 : capacityUnits === 50 ? 5 : 10;
+    var majorTicks = capacityUnits === 20 ? 4 : capacityUnits === 30 ? 6 : capacityUnits === 40 ? 8 : capacityUnits === 50 ? 5 : 10;
     var minorPerMajor = 5;
     var totalMinor = majorTicks * minorPerMajor;
 
@@ -1543,7 +1556,7 @@ document.addEventListener('DOMContentLoaded', function() {
           '<div class="primary-result">' +
             '<div class="label">' + t('drawTo') + '</div>' +
             '<div class="value">' + formatNum(unitsToDraw, 2) + '<span class="unit-label">' + t('units') + '</span></div>' +
-            '<div class="sub">≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { n: state.syringe }) + '</div>' +
+            '<div class="sub">≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { n: state.syringe, t: 'U' + state.syringeType }) + '</div>' +
           '</div>' +
           '<div class="stats-grid">' +
             '<div class="stat">' +
@@ -1579,6 +1592,7 @@ document.addEventListener('DOMContentLoaded', function() {
       state.dose = null;
       state.doseUnit = 'mg';
       state.syringe = null;
+      state.syringeType = 100;
       state.autoApplied = false;
       saveState();
       document.getElementById('peptide-select').value = '';
@@ -1635,33 +1649,54 @@ document.addEventListener('DOMContentLoaded', function() {
       state.dose = d.dose;
       state.doseUnit = d.doseUnit;
       state.syringe = d.syringe;
+      state.syringeType = d.syringe;
       state.autoApplied = true;
       document.getElementById('vial-custom').style.display = 'none';
       document.getElementById('water-custom').style.display = 'none';
       document.getElementById('dose-custom').style.display = 'none';
+      document.getElementById('syringe-custom').style.display = 'none';
       document.getElementById('vial-input').value = '';
       document.getElementById('water-input').value = '';
       document.getElementById('dose-input').value = '';
+      document.getElementById('syringe-input').value = '';
     } else {
       state.autoApplied = false;
     }
     update();
   });
 
+  function parseLocaleFloat(str) {
+    if (!str) return NaN;
+    return parseFloat(str.replace(',', '.'));
+  }
+
+  // Filter inputs to only allow digits, dot, and comma
+  function filterNumericInput(e) {
+    var clean = e.target.value.replace(/[^0-9.,]/g, '');
+    if (clean !== e.target.value) e.target.value = clean;
+  }
+  document.getElementById('vial-input').addEventListener('input', filterNumericInput);
+  document.getElementById('water-input').addEventListener('input', filterNumericInput);
+  document.getElementById('dose-input').addEventListener('input', filterNumericInput);
+  document.getElementById('syringe-input').addEventListener('input', function(e) {
+    var clean = e.target.value.replace(/[^0-9]/g, '');
+    if (clean !== e.target.value) e.target.value = clean;
+  });
+
   document.getElementById('vial-input').addEventListener('input', function(e) {
-    var v = parseFloat(e.target.value);
+    var v = parseLocaleFloat(e.target.value);
     state.vial = isNaN(v) ? null : v;
     state.autoApplied = false;
     update();
   });
   document.getElementById('water-input').addEventListener('input', function(e) {
-    var v = parseFloat(e.target.value);
+    var v = parseLocaleFloat(e.target.value);
     state.water = isNaN(v) ? null : v;
     state.autoApplied = false;
     update();
   });
   document.getElementById('dose-input').addEventListener('input', function(e) {
-    var v = parseFloat(e.target.value);
+    var v = parseLocaleFloat(e.target.value);
     state.dose = isNaN(v) ? null : v;
     state.autoApplied = false;
     update();
@@ -1669,6 +1704,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('syringe-input').addEventListener('input', function(e) {
     var v = parseInt(e.target.value, 10);
     state.syringe = isNaN(v) || v <= 0 ? null : v;
+    state.syringeType = state.syringe;
     state.autoApplied = false;
     update();
   });
@@ -1677,6 +1713,7 @@ document.addEventListener('DOMContentLoaded', function() {
   for (var u = 0; u < unitToggleBtns.length; u++) {
     unitToggleBtns[u].addEventListener('click', function() {
       var newUnit = this.getAttribute('data-unit');
+      if (!newUnit) return; // skip non-dose toggle buttons
       if (newUnit === state.doseUnit) return;
       var crossingIU = (newUnit === 'iu') !== (state.doseUnit === 'iu');
       if (crossingIU) {
@@ -1693,6 +1730,28 @@ document.addEventListener('DOMContentLoaded', function() {
       }
       state.doseUnit = newUnit;
       state.autoApplied = false;
+      document.getElementById('dose-custom').style.display = 'none';
+      document.getElementById('dose-input').value = '';
+      renderDosePills();
+      update();
+    });
+  }
+
+  // Vial unit toggle (syncs with dose unit toggle)
+  var vialUnitBtns = document.querySelectorAll('[data-vial-unit]');
+  for (var vu = 0; vu < vialUnitBtns.length; vu++) {
+    vialUnitBtns[vu].addEventListener('click', function() {
+      var newVialUnit = this.getAttribute('data-vial-unit');
+      var isCurrentlyIU = state.doseUnit === 'iu';
+      var wantIU = newVialUnit === 'iu';
+      if (wantIU === isCurrentlyIU) return;
+      // Sync dose unit: IU ↔ mg
+      state.dose = null;
+      state.vial = null;
+      state.doseUnit = wantIU ? 'iu' : 'mg';
+      state.autoApplied = false;
+      document.getElementById('vial-custom').style.display = 'none';
+      document.getElementById('vial-input').value = '';
       document.getElementById('dose-custom').style.display = 'none';
       document.getElementById('dose-input').value = '';
       renderDosePills();
