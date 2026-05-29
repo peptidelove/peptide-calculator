@@ -1070,6 +1070,37 @@
         </div>
       </div>
 
+      <div class="step" id="step-5">
+        <div class="step-header">
+          <div class="step-num">5</div>
+          <div class="step-title" data-i18n="step5">Syringe Capacity</div>
+          <div class="step-hint" id="hint-5"></div>
+          <svg class="step-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="capFill" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="rgba(34,211,238,0.2)"/>
+                <stop offset="100%" stop-color="rgba(34,211,238,0.6)"/>
+              </linearGradient>
+            </defs>
+            <rect x="14" y="5" width="12" height="30" rx="2" fill="rgba(255,255,255,0.06)" stroke="rgba(255,255,255,0.4)" stroke-width="0.8"/>
+            <rect x="15" y="22" width="10" height="12" rx="1" fill="url(#capFill)"/>
+            <line x1="26" y1="9" x2="30" y2="9" stroke="rgba(255,255,255,0.5)" stroke-width="0.7"/>
+            <line x1="26" y1="14" x2="29" y2="14" stroke="rgba(255,255,255,0.35)" stroke-width="0.6"/>
+            <line x1="26" y1="19" x2="30" y2="19" stroke="rgba(255,255,255,0.5)" stroke-width="0.7"/>
+            <line x1="26" y1="24" x2="29" y2="24" stroke="rgba(255,255,255,0.35)" stroke-width="0.6"/>
+            <line x1="26" y1="29" x2="30" y2="29" stroke="rgba(255,255,255,0.5)" stroke-width="0.7"/>
+            <rect x="16" y="3" width="8" height="3" rx="1" fill="rgba(167,139,250,0.6)"/>
+          </svg>
+        </div>
+        <div class="pills" id="capacity-pills"></div>
+        <div class="custom-row" id="capacity-custom" style="display:none">
+          <div class="input-wrap">
+            <input type="text" id="capacity-input" inputmode="decimal" data-i18n-placeholder="enterMlCap" placeholder="ml">
+            <span class="unit-suffix">ml</span>
+          </div>
+        </div>
+      </div>
+
       <div class="legend">
         <span class="legend-dot" data-i18n="legendRecommended">Recommended for selected peptide</span>
       </div>
@@ -1090,7 +1121,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.1.2</div>
+  <div class="version-tag">v1.2.1</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
@@ -1116,8 +1147,10 @@ document.addEventListener('DOMContentLoaded', function() {
       modeSpray: 'Nose Spray',
       step4: 'Syringe Type',
       step4spray: 'Spray Volume',
+      step5: 'Syringe Capacity',
       sprayPerPump: 'ml per pump',
       enterMlPerPump: 'ml per pump',
+      enterMlCap: 'ml (e.g. 0.3, 0.5, 1.0)',
       sprayResult: '{n} sprays',
       sprayOnDevice: '{n} sprays of {ml} ml each',
       warnSprayOverdose: 'One spray ({s} ml) exceeds the required dose volume ({v} ml). Use a spray device with a smaller volume per pump.',
@@ -1127,11 +1160,11 @@ document.addEventListener('DOMContentLoaded', function() {
       enterMl: 'Enter ml',
       enterDose: 'Enter dose',
       enterUnits: 'Enter units',
-      enterUnitsPerMl: 'Units/ml (e.g. 40, 50, 100)',
+      enterUnitsPerMl: 'Units/ml (e.g. 40, 100)',
       empty: 'Select all values to calculate your dose',
       legendRecommended: 'Recommended for selected peptide',
       drawTo: 'Draw to',
-      onSyringe: 'on a {n}u {t} insulin syringe',
+      onSyringe: 'on a {t} · {c} ml ({u}u) syringe',
       concentration: 'Concentration',
       dosesPerVial: 'Doses per vial',
       perDose: '{n} {u} per dose',
@@ -1140,7 +1173,7 @@ document.addEventListener('DOMContentLoaded', function() {
       copyResult: 'Copy result',
       reset: 'Reset',
       copied: 'Copied to clipboard',
-      errorOverflow: 'Dose exceeds {n}u syringe capacity. Use a larger syringe or split into multiple injections.',
+      errorOverflow: 'Dose exceeds the {c} ml ({n}u) syringe capacity. Use a larger syringe or split into multiple injections.',
       warnTooSmall: 'Draw volume is under 1 unit — measurement accuracy may be poor. Consider increasing your reconstitution volume.',
       disclaimerTitle: 'Disclaimer:',
       disclaimer: "This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.",
@@ -1169,8 +1202,10 @@ document.addEventListener('DOMContentLoaded', function() {
       modeSpray: 'Nasenspray',
       step4: 'Spritzentyp',
       step4spray: 'Sprühvolumen',
+      step5: 'Spritzengröße',
       sprayPerPump: 'ml pro Sprühstoß',
       enterMlPerPump: 'ml pro Sprühstoß',
+      enterMlCap: 'ml (z.B. 0,3, 0,5, 1,0)',
       sprayResult: '{n} Sprühstöße',
       sprayOnDevice: '{n} Sprühstöße à {ml} ml',
       warnSprayOverdose: 'Ein Sprühstoß ({s} ml) übersteigt das benötigte Dosisvolumen ({v} ml). Verwende ein Spray mit kleinerem Volumen pro Sprühstoß.',
@@ -1180,11 +1215,11 @@ document.addEventListener('DOMContentLoaded', function() {
       enterMl: 'ml eingeben',
       enterDose: 'Dosis eingeben',
       enterUnits: 'Einheiten eingeben',
-      enterUnitsPerMl: 'Einheiten/ml (z.B. 40, 50, 100)',
+      enterUnitsPerMl: 'Einheiten/ml (z.B. 40, 100)',
       empty: 'Wähle alle Werte, um deine Dosis zu berechnen',
       legendRecommended: 'Empfohlen für ausgewähltes Peptid',
       drawTo: 'Aufziehen auf',
-      onSyringe: 'auf einer {n}u {t} Insulinspritze',
+      onSyringe: 'auf einer {t} · {c} ml ({u}u) Spritze',
       concentration: 'Konzentration',
       dosesPerVial: 'Dosen pro Vial',
       perDose: '{n} {u} pro Dosis',
@@ -1193,7 +1228,7 @@ document.addEventListener('DOMContentLoaded', function() {
       copyResult: 'Ergebnis kopieren',
       reset: 'Zurücksetzen',
       copied: 'In Zwischenablage kopiert',
-      errorOverflow: 'Dosis überschreitet {n}u Spritzenkapazität. Verwende eine größere Spritze oder teile auf mehrere Injektionen auf.',
+      errorOverflow: 'Dosis überschreitet die {c} ml ({n}u) Spritzenkapazität. Verwende eine größere Spritze oder teile auf mehrere Injektionen auf.',
       warnTooSmall: 'Aufziehvolumen liegt unter 1 Einheit — Messgenauigkeit kann schlecht sein. Erhöhe ggf. das Rekonstitutionsvolumen.',
       disclaimerTitle: 'Haftungsausschluss:',
       disclaimer: 'Dieser Rechner dient ausschließlich zu Informations- und Bildungszwecken. Er stellt keine medizinische Beratung oder Verschreibung dar. Befolge stets die Anweisungen deines medizinischen Fachpersonals und konsultiere eine qualifizierte Fachkraft, bevor du ein Peptid oder Medikament verabreichst.',
@@ -1240,7 +1275,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var DOSE_PRESETS_MCG = [100, 200, 250, 500, 750, 1000];
   var DOSE_PRESETS_MG = [0.5, 1, 2, 2.5, 5];
   var DOSE_PRESETS_IU = [0.5, 1, 1.5, 2, 2.5, 3, 4];
-  var SYRINGE_PRESETS = [40, 50, 100];
+  var SYRINGE_PRESETS = [40, 100];
+  var CAPACITY_PRESETS = [0.3, 0.5, 1.0];
   var SPRAY_PRESETS = [0.1, 0.12, 0.14];
 
   var PEPTIDE_DEFAULTS = {
@@ -1291,7 +1327,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // ---------- State ----------
-  var STORAGE_KEY = 'peptide-calc-v4';
+  var STORAGE_KEY = 'peptide-calc-v5';
   var state = {
     peptide: '',
     vial: null,
@@ -1300,6 +1336,7 @@ document.addEventListener('DOMContentLoaded', function() {
     doseUnit: 'mg',
     syringe: null,
     syringeType: 100,
+    capacity: 1.0,
     mode: 'syringe',
     sprayVolume: null,
     lang: 'de',
@@ -1467,14 +1504,34 @@ document.addEventListener('DOMContentLoaded', function() {
     }, null, true);
   }
 
+  function renderCapacityPills() {
+    var st = state.syringeType || 100;
+    buildPills('capacity-pills', CAPACITY_PRESETS, function(v) {
+      return v.toFixed(1) + ' ml · ' + Math.round(v * st) + 'u';
+    }, state.capacity, function(v) {
+      if (v === 'custom') {
+        document.getElementById('capacity-custom').style.display = 'flex';
+        document.getElementById('capacity-input').focus();
+      } else {
+        state.capacity = v;
+        document.getElementById('capacity-custom').style.display = 'none';
+        document.getElementById('capacity-input').value = '';
+        update();
+      }
+    }, null, true);
+  }
+
   function renderStep4() {
     var isSyringe = state.mode === 'syringe';
     document.getElementById('step4-syringe').style.display = isSyringe ? 'block' : 'none';
     document.getElementById('step4-spray').style.display = isSyringe ? 'none' : 'block';
     document.getElementById('step4-icon-syringe').style.display = isSyringe ? '' : 'none';
     document.getElementById('step4-icon-spray').style.display = isSyringe ? 'none' : '';
+    // Capacity step only applies to syringe mode
+    document.getElementById('step-5').style.display = isSyringe ? '' : 'none';
     if (isSyringe) {
       renderSyringePills();
+      renderCapacityPills();
     } else {
       renderSprayPills();
     }
@@ -1524,6 +1581,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (state.mode === 'syringe') {
       if (state.syringe == null) return null;
+      if (state.capacity == null || state.capacity <= 0) return null;
     } else {
       if (state.sprayVolume == null || state.sprayVolume <= 0) return null;
     }
@@ -1531,11 +1589,13 @@ document.addEventListener('DOMContentLoaded', function() {
     var doseMg = state.doseUnit === 'mcg' ? state.dose / 1000 : state.dose;
     var concentration = state.vial / state.water;
     var volumeMl = doseMg / concentration;
-    var unitsToDraw = volumeMl * (state.syringeType || 100);
+    var syringeType = state.syringeType || 100;
+    var unitsToDraw = volumeMl * syringeType;
+    var maxUnits = (state.capacity || 1) * syringeType; // syringe capacity expressed in units
     var totalDoses = state.vial / doseMg;
     var spraysNeeded = state.sprayVolume ? volumeMl / state.sprayVolume : null;
 
-    return { concentration: concentration, volumeMl: volumeMl, unitsToDraw: unitsToDraw, totalDoses: totalDoses, doseMg: doseMg, spraysNeeded: spraysNeeded };
+    return { concentration: concentration, volumeMl: volumeMl, unitsToDraw: unitsToDraw, maxUnits: maxUnits, totalDoses: totalDoses, doseMg: doseMg, spraysNeeded: spraysNeeded };
   }
 
   function updateStepStatus() {
@@ -1547,6 +1607,7 @@ document.addEventListener('DOMContentLoaded', function() {
       ? state.syringe != null
       : state.sprayVolume != null && state.sprayVolume > 0;
     document.getElementById('step-4').classList.toggle('complete', step4Complete);
+    document.getElementById('step-5').classList.toggle('complete', state.capacity != null && state.capacity > 0);
 
     var vialUnit = state.doseUnit === 'iu' ? 'IU' : 'mg';
     var doseUnitLabel = state.doseUnit === 'iu' ? 'IU' : state.doseUnit;
@@ -1556,6 +1617,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('hint-4').textContent = state.mode === 'syringe'
       ? (state.syringe != null ? 'U' + state.syringe : '')
       : (state.sprayVolume != null ? state.sprayVolume + ' ml' : '');
+    document.getElementById('hint-5').textContent = state.capacity != null ? state.capacity + ' ml' : 'ml';
 
     // Update step 2 title based on mode
     var step2Title = document.querySelector('#step-2 .step-title');
@@ -1810,13 +1872,13 @@ document.addEventListener('DOMContentLoaded', function() {
           '</div>';
       }
     } else {
-      var fillFraction = unitsToDraw / state.syringe;
-      var overflow = unitsToDraw > state.syringe;
+      var fillFraction = unitsToDraw / result.maxUnits;
+      var overflow = unitsToDraw > result.maxUnits;
       var tooSmall = unitsToDraw < 1;
       if (overflow) {
         alertHtml = '<div class="alert error">' +
           '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>' +
-          '<div>' + t('errorOverflow', { n: state.syringe }) + '</div>' +
+          '<div>' + t('errorOverflow', { c: formatNum(state.capacity, 2), n: formatNum(result.maxUnits, 1) }) + '</div>' +
           '</div>';
       } else if (tooSmall) {
         alertHtml = '<div class="alert warn">' +
@@ -1840,8 +1902,8 @@ document.addEventListener('DOMContentLoaded', function() {
       primaryLabel = t('drawTo');
       primaryValue = formatNum(unitsToDraw, 2);
       primaryUnit = t('units');
-      primarySub = '≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { n: state.syringe, t: 'U' + state.syringeType });
-      vizHtml = syringeSvg(fillFraction, state.syringe, unitsToDraw);
+      primarySub = '≈ ' + formatNum(volumeMl, 4) + ' ml ' + t('onSyringe', { t: 'U' + state.syringeType, c: formatNum(state.capacity, 2), u: formatNum(result.maxUnits, 1) });
+      vizHtml = syringeSvg(fillFraction, result.maxUnits, unitsToDraw);
     }
 
     content.innerHTML =
@@ -1887,6 +1949,7 @@ document.addEventListener('DOMContentLoaded', function() {
       state.doseUnit = 'mg';
       state.syringe = null;
       state.syringeType = 100;
+      state.capacity = 1.0;
       state.sprayVolume = null;
       state.autoApplied = false;
       saveState();
@@ -1895,11 +1958,13 @@ document.addEventListener('DOMContentLoaded', function() {
       document.getElementById('water-custom').style.display = 'none';
       document.getElementById('dose-custom').style.display = 'none';
       document.getElementById('syringe-custom').style.display = 'none';
+      document.getElementById('capacity-custom').style.display = 'none';
       document.getElementById('spray-custom').style.display = 'none';
       document.getElementById('vial-input').value = '';
       document.getElementById('water-input').value = '';
       document.getElementById('dose-input').value = '';
       document.getElementById('syringe-input').value = '';
+      document.getElementById('capacity-input').value = '';
       document.getElementById('spray-input').value = '';
       renderAll();
     });
@@ -2005,6 +2070,13 @@ document.addEventListener('DOMContentLoaded', function() {
     state.autoApplied = false;
     update();
   });
+  document.getElementById('capacity-input').addEventListener('input', filterNumericInput);
+  document.getElementById('capacity-input').addEventListener('input', function(e) {
+    var v = parseLocaleFloat(e.target.value);
+    state.capacity = isNaN(v) || v <= 0 ? null : v;
+    state.autoApplied = false;
+    update();
+  });
 
   var unitToggleBtns = document.querySelectorAll('.unit-toggle-btn');
   for (var u = 0; u < unitToggleBtns.length; u++) {
@@ -2106,6 +2178,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (state.syringe != null && SYRINGE_PRESETS.indexOf(state.syringe) === -1) {
     document.getElementById('syringe-custom').style.display = 'flex';
     document.getElementById('syringe-input').value = state.syringe;
+  }
+  if (state.capacity != null && CAPACITY_PRESETS.indexOf(state.capacity) === -1) {
+    document.getElementById('capacity-custom').style.display = 'flex';
+    document.getElementById('capacity-input').value = state.capacity;
   }
   if (state.sprayVolume != null && SPRAY_PRESETS.indexOf(state.sprayVolume) === -1) {
     document.getElementById('spray-custom').style.display = 'flex';
