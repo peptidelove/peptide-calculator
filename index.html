@@ -1073,7 +1073,7 @@
       <div class="step" id="step-5">
         <div class="step-header">
           <div class="step-num">5</div>
-          <div class="step-title" data-i18n="step5">Syringe Capacity</div>
+          <div class="step-title" data-i18n="step5">Syringe Volume</div>
           <div class="step-hint" id="hint-5"></div>
           <svg class="step-icon" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
             <defs>
@@ -1121,7 +1121,7 @@
   <div class="disclaimer">
     <strong data-i18n="disclaimerTitle">Disclaimer:</strong> <span data-i18n="disclaimer">This calculator is intended for informational and educational purposes only. It does not constitute medical advice or a prescription. Always follow your healthcare provider's instructions and consult a qualified professional before administering any peptide or medication.</span>
   </div>
-  <div class="version-tag">v1.2.1</div>
+  <div class="version-tag">v1.2.2</div>
 </div>
 
 <div class="toast" id="toast" data-i18n="copied">Copied to clipboard</div>
@@ -1147,7 +1147,7 @@ document.addEventListener('DOMContentLoaded', function() {
       modeSpray: 'Nose Spray',
       step4: 'Syringe Type',
       step4spray: 'Spray Volume',
-      step5: 'Syringe Capacity',
+      step5: 'Syringe Volume',
       sprayPerPump: 'ml per pump',
       enterMlPerPump: 'ml per pump',
       enterMlCap: 'ml (e.g. 0.3, 0.5, 1.0)',
@@ -1202,7 +1202,7 @@ document.addEventListener('DOMContentLoaded', function() {
       modeSpray: 'Nasenspray',
       step4: 'Spritzentyp',
       step4spray: 'Sprühvolumen',
-      step5: 'Spritzengröße',
+      step5: 'Spritzenvolumen',
       sprayPerPump: 'ml pro Sprühstoß',
       enterMlPerPump: 'ml pro Sprühstoß',
       enterMlCap: 'ml (z.B. 0,3, 0,5, 1,0)',
@@ -1327,7 +1327,7 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   // ---------- State ----------
-  var STORAGE_KEY = 'peptide-calc-v5';
+  var STORAGE_KEY = 'peptide-calc-v6';
   var state = {
     peptide: '',
     vial: null,
@@ -1336,7 +1336,7 @@ document.addEventListener('DOMContentLoaded', function() {
     doseUnit: 'mg',
     syringe: null,
     syringeType: 100,
-    capacity: 1.0,
+    capacity: null,
     mode: 'syringe',
     sprayVolume: null,
     lang: 'de',
@@ -1949,7 +1949,7 @@ document.addEventListener('DOMContentLoaded', function() {
       state.doseUnit = 'mg';
       state.syringe = null;
       state.syringeType = 100;
-      state.capacity = 1.0;
+      state.capacity = null;
       state.sprayVolume = null;
       state.autoApplied = false;
       saveState();
