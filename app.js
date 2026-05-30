@@ -197,6 +197,7 @@ document.addEventListener('DOMContentLoaded', function() {
     return Math.abs(converted - v) < 1e-9;
   }
   function isRecommendedSyringe(v) { var r = getRecommended(); return r && r.syringe === v; }
+  function isRecommendedCapacity(v) { var r = getRecommended(); return r && (r.capacity || 1.0) === v; }
 
   // ---------- Pill builders ----------
   function buildPills(containerId, presets, formatter, currentVal, onClick, isRecommended, includeOther) {
@@ -342,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('capacity-input').value = '';
         update();
       }
-    }, null, true);
+    }, isRecommendedCapacity, true);
   }
 
   function renderStep4() {
@@ -836,15 +837,18 @@ document.addEventListener('DOMContentLoaded', function() {
       state.doseUnit = d.doseUnit;
       state.syringe = d.syringe;
       state.syringeType = d.syringe;
+      state.capacity = d.capacity || 1.0;
       state.autoApplied = true;
       document.getElementById('vial-custom').style.display = 'none';
       document.getElementById('water-custom').style.display = 'none';
       document.getElementById('dose-custom').style.display = 'none';
       document.getElementById('syringe-custom').style.display = 'none';
+      document.getElementById('capacity-custom').style.display = 'none';
       document.getElementById('vial-input').value = '';
       document.getElementById('water-input').value = '';
       document.getElementById('dose-input').value = '';
       document.getElementById('syringe-input').value = '';
+      document.getElementById('capacity-input').value = '';
     } else {
       state.autoApplied = false;
     }
