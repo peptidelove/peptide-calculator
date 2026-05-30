@@ -1,0 +1,17 @@
+{
+  "name": "Peptide Dose Calculator",
+  "short_name": "Peptide Calc",
+  "description": "Calculate the exact draw volume for your reconstituted peptide.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#050810",
+  "theme_color": "#050810",
+  "icons": [
+    { "src": "favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "apple-touch-icon.png", "type": "image/png", "sizes": "180x180" },
+    { "src": "favicon.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "favicon.png", "type": "image/png", "sizes": "512x512" }
+  ]
+}
